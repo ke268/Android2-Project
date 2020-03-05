@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Main2Activity"
+    android:orientation="vertical"
+    android:background="@drawable/splashscreen">
+
+
+    <ImageView
+        android:id="@+id/displayImageView"
+        android:layout_width="391dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="250dp" />
+
+    <Button
+        android:id="@+id/angry_btn"
+
+        android:text="Send"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:layout_width="250dp"
+        android:layout_height="60dp"
+        android:background="@drawable/buttonshape"
+        android:shadowColor="#1990A8"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="30"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"/>
+
+
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="90dp"
+        android:src="@drawable/cameara"
+        android:onClick="cameraBtn"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="290dp"
+
+        />
+
+
+
+</LinearLayout>
