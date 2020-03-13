@@ -14,15 +14,22 @@
         android:layout_width="391dp"
         android:layout_height="250dp"
         android:layout_gravity="center"
-        android:layout_marginTop="250dp" />
+        android:layout_marginTop="200dp" />
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/Latlng"
+    />
+
+
+
 
     <Button
-        android:id="@+id/angry_btn"
 
         android:text="Send"
         android:textColor="#FFFFFF"
         android:textSize="30sp"
-        android:layout_width="250dp"
+        android:layout_width="300dp"
         android:layout_height="60dp"
         android:background="@drawable/buttonshape"
         android:shadowColor="#1990A8"
@@ -30,19 +37,38 @@
         android:shadowDy="0"
         android:shadowRadius="30"
         android:layout_gravity="center"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="40dp"
+        android:onClick="upload"/>
 
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginTop="20dp"
+    android:layout_gravity="center">
 
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="90dp"
+        android:src="@drawable/location"
+        android:onClick="locationBtn"
+        android:layout_marginLeft="17dp"
+        />
 
     <ImageView
         android:layout_width="80dp"
         android:layout_height="90dp"
         android:src="@drawable/cameara"
         android:onClick="cameraBtn"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="290dp"
+
+        android:layout_marginLeft="170dp"
 
         />
+
+
+</LinearLayout>
+
+
 
 
 
