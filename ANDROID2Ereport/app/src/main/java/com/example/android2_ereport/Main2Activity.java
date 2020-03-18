@@ -11,6 +11,8 @@ import androidx.core.content.FileProvider;
 import android.Manifest;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,7 +21,11 @@ import android.graphics.Bitmap;
 
 import android.icu.text.SimpleDateFormat;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -30,14 +36,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.core.Tag;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
@@ -45,18 +56,25 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 
 
-public class Main2Activity extends AppCompatActivity {
+public class Main2Activity extends AppCompatActivity implements LocationListener {
 
     public static final int CAMERA_REQUEST_CODE = 102;
     ImageView selectedImage;
 
-    StorageReference storageReference;
+    StorageReference storageReference, Imageref;
+    private DatabaseReference databaseReference;
+    FirebaseStorage storage;
     String currentPhotoPath;
+    TextView latlng;
+    private LocationManager locationManager;
+    TextView imageurl;
+    ProgressDialog progressDialog;
 
-
-
+    Uri uriImage;
+    UploadTask uploadTask;
 
 
     public static final int CAMERA_PERM_CODE = 101;
@@ -73,9 +91,6 @@ public class Main2Activity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return true;
-
-
-
 
 
     }
@@ -130,7 +145,34 @@ public class Main2Activity extends AppCompatActivity {
 
         storageReference = FirebaseStorage.getInstance().getReference();
 
+        latlng = findViewById(R.id.latlng);
 
+        imageurl=findViewById(R.id.url);
+
+        storage = FirebaseStorage.getInstance();
+
+
+
+
+
+        locationManager = (LocationManager) (getSystemService(Context.LOCATION_SERVICE));
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    Activity#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for Activity#requestPermissions for more details.
+                return;
+            }
+        }
+        Location location = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
+
+        onLocationChanged(location);
 
 
     }
@@ -183,6 +225,7 @@ public class Main2Activity extends AppCompatActivity {
                 File f = new File (currentPhotoPath);
                 selectedImage.setImageURI(Uri.fromFile(f));
 
+
                 Log.d("tag","Absolute Url of Image is" + Uri.fromFile(f));
                 Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
 
@@ -191,10 +234,12 @@ public class Main2Activity extends AppCompatActivity {
                 this.sendBroadcast(mediaScanIntent);
 
 
-            uploadImageToFirebase(f.getName(),contentUri);
+
+                uploadImageToFirebase(f.getName(),contentUri);
 
             }
         }
+
 
 
     }
@@ -214,10 +259,19 @@ public class Main2Activity extends AppCompatActivity {
 
 
 
+
+
+
+
+    progressDialog = new ProgressDialog(this);
+    progressDialog.setMax(100);
+    progressDialog.setMessage("Uploading...");
+    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    progressDialog.show();
+     progressDialog.setCancelable(false);
+
+
         uploadImageToFirebase(f.getName(),contentUri);
-
-
-
 
 
     }
@@ -225,19 +279,30 @@ public class Main2Activity extends AppCompatActivity {
 
 
 
-    private void uploadImageToFirebase(String name, Uri contentUri) {
+    private void uploadImageToFirebase(final String name, final Uri contentUri) {
 
 
 
         final StorageReference image = storageReference.child("images/" + name);
+
         image.putFile(contentUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
+
+
+
+
+
                 image.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+
+
                     @Override
                     public void onSuccess(Uri uri) {
 
+                        imageurl.setText(uri.toString());
+
+                            progressDialog.dismiss();
                         Toast.makeText(Main2Activity.this, "Uploaded", Toast.LENGTH_SHORT).show();
                     }
 
@@ -246,11 +311,21 @@ public class Main2Activity extends AppCompatActivity {
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
+
             public void onFailure(@NonNull Exception e) {
+
+                progressDialog.dismiss();
                 Toast.makeText(Main2Activity.this, "Uploading Failed.", Toast.LENGTH_SHORT).show();
             }
         });
+
+
+
     }
+
+
+
+
 
 
     private File createImageFile() throws IOException {
@@ -260,7 +335,7 @@ public class Main2Activity extends AppCompatActivity {
             timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         }
         String imageFileName = "JPEG_" + timeStamp + "_";
-      //  File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        //  File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
@@ -312,7 +387,28 @@ public class Main2Activity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onLocationChanged(Location location) {
+        double longitude=location.getLongitude();
+        double latitude=location.getLatitude();
 
+        latlng.setText("Latitude: "+latitude+"\n"+"Longitude: "+longitude);
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 }
 
 
