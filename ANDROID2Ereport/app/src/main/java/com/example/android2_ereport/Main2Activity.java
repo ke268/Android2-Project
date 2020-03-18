@@ -28,6 +28,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 
 import android.util.Log;
@@ -43,9 +44,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.core.Tag;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -57,6 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.jar.Attributes;
 
 
 public class Main2Activity extends AppCompatActivity implements LocationListener {
@@ -68,13 +72,17 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
     private DatabaseReference databaseReference;
     FirebaseStorage storage;
     String currentPhotoPath;
-    TextView latlng;
+
     private LocationManager locationManager;
-    TextView imageurl;
+    TextView Imageurl;
+    TextView Latitude;
+    TextView Longitude;
+    DatabaseReference databaseUsers;
     ProgressDialog progressDialog;
 
-    Uri uriImage;
-    UploadTask uploadTask;
+
+
+
 
 
     public static final int CAMERA_PERM_CODE = 101;
@@ -84,6 +92,10 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
     private static final String myNumber = "Number";
     SharedPreferences sharedPreferences;
     private FusedLocationProviderClient client;
+
+
+
+    String ImageUrl;
 
 
     @Override
@@ -145,11 +157,15 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
 
         storageReference = FirebaseStorage.getInstance().getReference();
 
-        latlng = findViewById(R.id.latlng);
+        Latitude = findViewById(R.id.latitude);
 
-        imageurl=findViewById(R.id.url);
+        Longitude = findViewById(R.id.longitude);
+
+        Imageurl=findViewById(R.id.url);
 
         storage = FirebaseStorage.getInstance();
+
+        databaseUsers = FirebaseDatabase.getInstance().getReference("Users");
 
 
 
@@ -244,6 +260,23 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
 
     }
 
+    private void uploadall(){
+
+        String gName=sharedPreferences.getString(myName,"");
+        String gNumber=sharedPreferences.getString(myNumber,"");
+        String id = databaseUsers.push().getKey();
+
+        String latitude = Latitude.getText().toString();
+        String longitude = Longitude.getText().toString();
+
+        Users users = new Users(id, gName, gNumber, ImageUrl, latitude, longitude);
+
+        databaseUsers.child(id).setValue(users);
+
+
+
+    }
+
     public void upload(View view){
 
 
@@ -271,10 +304,17 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
      progressDialog.setCancelable(false);
 
 
+
         uploadImageToFirebase(f.getName(),contentUri);
 
 
+
+
+
+
+
     }
+
 
 
 
@@ -293,22 +333,28 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
 
 
 
-
                 image.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
 
 
                     @Override
                     public void onSuccess(Uri uri) {
 
-                        imageurl.setText(uri.toString());
+
+                        ImageUrl = uri.toString();
+                        if(ImageUrl!=""){
+                            uploadall();
+                        }
 
                             progressDialog.dismiss();
                         Toast.makeText(Main2Activity.this, "Uploaded", Toast.LENGTH_SHORT).show();
                     }
 
-                });
 
+
+                });
             }
+
+
         }).addOnFailureListener(new OnFailureListener() {
             @Override
 
@@ -392,7 +438,10 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
         double longitude=location.getLongitude();
         double latitude=location.getLatitude();
 
-        latlng.setText("Latitude: "+latitude+"\n"+"Longitude: "+longitude);
+
+        Latitude.setText(""+latitude);
+        Longitude.setText(""+longitude);
+
     }
 
     @Override
