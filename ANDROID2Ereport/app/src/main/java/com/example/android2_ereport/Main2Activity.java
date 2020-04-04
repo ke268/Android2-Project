@@ -137,7 +137,7 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
                 return true;
 
             case R.id.uninstall:
-                Toast.makeText(this, "Charot", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, MainActivity.class));
                 return true;
 
             default:
@@ -213,7 +213,16 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
     }
 
     public void cameraBtn(View view) {
-        askCameraPermissions();
+
+        String gName=sharedPreferences.getString(myName,"");
+        String gNumber=sharedPreferences.getString(myNumber,"");
+
+        if(gName.isEmpty() && gNumber.isEmpty()){
+            startActivity(new Intent(this, Main2Activity.class));
+        }else{
+            askCameraPermissions();
+        }
+
     }
 
     private void askCameraPermissions() {
@@ -273,8 +282,6 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
 
         databaseUsers.child(id).setValue(users);
 
-
-
     }
 
     public void upload(View view){
@@ -302,11 +309,6 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     progressDialog.show();
      progressDialog.setCancelable(false);
-
-
-
-        uploadImageToFirebase(f.getName(),contentUri);
-
 
 
 
@@ -341,9 +343,10 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
 
 
                         ImageUrl = uri.toString();
-                        if(ImageUrl!=""){
+
+
+
                             uploadall();
-                        }
 
                             progressDialog.dismiss();
                         Toast.makeText(Main2Activity.this, "Uploaded", Toast.LENGTH_SHORT).show();
@@ -351,7 +354,10 @@ public class Main2Activity extends AppCompatActivity implements LocationListener
 
 
 
+
                 });
+
+
             }
 
 

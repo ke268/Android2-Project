@@ -5,13 +5,15 @@
         android:title="About Us"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/quit"
+    <item
+        android:id="@+id/quit"
         android:title="Quit"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
 
-    <item android:id="@+id/uninstall"
-        android:title="Uninstall"
-        app:showAsAction="never"/>
+    <item
+        android:id="@+id/uninstall"
+        android:title="Change Account"
+        app:showAsAction="never" />
 
 
     </menu>
